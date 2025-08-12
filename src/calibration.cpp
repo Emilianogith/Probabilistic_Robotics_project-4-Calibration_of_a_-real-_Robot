@@ -19,30 +19,74 @@ void compute_error_and_Jacobian(
     Eigen::Vector2d h;
     Eigen::Vector2d pos_sensor = x.head<2>(); // position of the sensor in robot frame
     Eigen::Vector2d pos_robot;
-    double theta;
+    double theta, phi;
 
     // integrate the model
     tr.update_tricycle_state(ticks_steer, ticks_track);
     pos_robot = tr.pos();
-    theta = tr.theta();
+    theta     = tr.theta();
+    phi       = tr.phi();
     // std::cout << "\n" << "x: " << tr.x() << std::endl;
     // std::cout << "y: " << tr.y() << std::endl;
     // std::cout << "theta: " << tr.theta() << std::endl;
     // std::cout << "phi: " << tr.phi() << "\n" << std::endl;
 
     Eigen::Matrix2d R;
-    const double c = std::cos(theta);
-    const double s = std::sin(theta);
-    R << c, -s,
-         s,  c;
+    const double c_theta = std::cos(theta);
+    const double s_theta = std::sin(theta);
+    R << c_theta, -s_theta,
+         s_theta,  c_theta;
 
     h = pos_robot + R * pos_sensor;          // position of the sensor expressed in world reference frame   
     error = h - z;
 
     // compute the jacobian
-    J << 1.1, 1.2, 0.5, 0.7, 0.9, 1.0,
-         1.3, 0.2, 0.5, 0.2, 0.3, 1.1;
+    Eigen::Matrix2d R_prime;
+    R_prime << -s_theta, -c_theta,
+                c_theta,  -s_theta;
 
+    const double c_phi = std::cos(phi);
+    const double s_phi = std::sin(phi);
+     
+    double Ksteer    = x(2);
+    double Ktraction = x(3);
+    double baseline  = x(4);
+    double steer_off = x(5);
+
+    // compute differentials
+    double diff_theta_phi  = Ktraction * ticks_track * c_phi / baseline;
+    Eigen::Vector2d diff_p_phi = 
+        Ktraction * ticks_track * (
+            Eigen::Vector2d(-s_theta, c_theta) * c_phi * diff_theta_phi +
+            Eigen::Vector2d(c_theta, s_theta) * (-s_phi)
+        );
+
+    // diff theta
+    double diff_theta_Ksteer    = diff_theta_phi * ticks_steer;
+    double diff_theta_Ktraction = ticks_track * s_phi / baseline;
+    double diff_theta_baseline  = - Ktraction * ticks_track * s_phi / std::pow(baseline,2);
+    double diff_theta_steer_off = diff_theta_phi;
+
+    // diff p
+    Eigen::Vector2d diff_p_Ksteer    = diff_p_phi * ticks_steer;
+    Eigen::Vector2d diff_p_Ktraction = 
+        ticks_track * Eigen::Vector2d(c_theta, s_theta) * c_phi +
+        Ktraction * ticks_track * Eigen::Vector2d(-s_theta, c_theta) * c_phi * diff_theta_Ktraction;
+    Eigen::Vector2d diff_p_baseline  = Ktraction * ticks_track * Eigen::Vector2d(-s_theta, c_theta) * c_phi * diff_theta_baseline;
+    Eigen::Vector2d diff_p_steer_off = diff_p_phi;
+
+    Eigen::Vector2d diff_Ksteer    = diff_p_Ksteer    + R_prime * pos_sensor * diff_theta_Ksteer;
+    Eigen::Vector2d diff_Ktraction = diff_p_Ktraction + R_prime * pos_sensor * diff_theta_Ktraction;
+    Eigen::Vector2d diff_baseline  = diff_p_baseline  + R_prime * pos_sensor * diff_theta_baseline;
+    Eigen::Vector2d diff_steer_off = diff_p_steer_off + R_prime * pos_sensor * diff_theta_steer_off;
+
+    J.block(0,0,2,2) = R_prime;
+    J.col(2) << diff_Ksteer;
+    J.col(3) << diff_Ktraction;
+    J.col(4) << diff_baseline;
+    J.col(5) << diff_steer_off;
+
+    std::cout << "\n" << "J: " << "\n" << J << "\n" << std::endl;
 }
 
 
@@ -84,14 +128,11 @@ int main(int argc, char** argv) {
         ds.params.axis_length,
         ds.params.steer_offset;
 
-    Eigen::Matrix2d Omega;
-    Omega << 1.0, 0.0,
-             0.0, 1.0;
-
-
+    Eigen::Matrix2d Omega = 1e-4 * Eigen::Matrix2d::Identity();
+   
 
     // ICP loop            num_measurements
-    for(int index = 0; index < 10; index ++){
+    for(int index = 0; index < num_measurements; index ++){
 
         // get a measurement
         get_sensor_reading(ds, index, time, ticks_steer, ticks_track, z);
@@ -113,14 +154,16 @@ int main(int argc, char** argv) {
 
 
         // calibrate_parameters
-        H += Jacobian.transpose()* Omega * Jacobian;
-        b += Jacobian.transpose()* Omega * error;
+        H += Jacobian.transpose() * Omega * Jacobian;
+        b += Jacobian.transpose() * Omega * error;
+        
+        Eigen::VectorXd dx = H.ldlt().solve(-b);
+        x += dx;            // occhio a offset steer che è un angolo!!!
+
         std::cout << "H: " << H << std::endl;
         std::cout << "b: " << b << std::endl;
-
-        Eigen::VectorXd dx = H.ldlt().solve(-b);
         std::cout << "dx: " << dx << std::endl;
-        x += dx;
+
     }
 
     std::cout << "\n" << "ICP algorithm terminated " << std::endl;
