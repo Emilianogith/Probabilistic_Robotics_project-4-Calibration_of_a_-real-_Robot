@@ -1,7 +1,6 @@
 #include "utils.h"
 
 
-
 void print_infos(Dataset& ds){
     std::cout << "Parameters:\n"
               << "  Ksteer=" << ds.params.Ksteer
@@ -29,4 +28,33 @@ void print_infos(Dataset& ds){
     }
 
 
+}
+
+
+
+void get_sensor_reading(
+    Dataset& ds, 
+    int& index, 
+    double& time, 
+    int32_t& ticks_steer,
+    int32_t& ticks_track, 
+    Eigen::Vector2d& z){
+    
+    if (index < 0 || index >= static_cast<int>(ds.records.size())) {
+        throw std::out_of_range("Index out of range in get_sensor_readings");
+    }
+
+    const auto& r = ds.records[index];
+    const auto& prev_r = (index == 0) ? r : ds.records[index - 1];
+
+    const uint32_t max_steer    = static_cast<uint32_t>(ds.joints.values[0]);
+    const uint32_t max_traction = static_cast<uint32_t>(ds.joints.values[1]);
+    
+    time = r.time;
+    ticks_steer = r.ticks_steer % max_steer;    
+    ticks_track = static_cast<int32_t>(r.ticks_trac - prev_r.ticks_trac);
+
+
+    z(0) = r.track_x;
+    z(1) = r.track_y;
 }

@@ -5,10 +5,22 @@ project(Calibration)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
+
+find_package(Eigen3 REQUIRED)
+
 
 add_executable(calibration 
 src/calibration.cpp
 src/parse_dataset.cpp
 src/utils.cpp
+src/tricycle_model.cpp
 )
+
+
+target_include_directories(calibration PRIVATE
+${PROJECT_SOURCE_DIR}/include
+)
+
+target_link_libraries(calibration PRIVATE
+ Eigen3::Eigen
+ )
