@@ -80,13 +80,13 @@ void compute_error_and_Jacobian(
     Eigen::Vector2d diff_baseline  = diff_p_baseline  + R_prime * pos_sensor * diff_theta_baseline;
     Eigen::Vector2d diff_steer_off = diff_p_steer_off + R_prime * pos_sensor * diff_theta_steer_off;
 
-    J.block(0,0,2,2) = R_prime;
+    J.block(0,0,2,2) = R; 
     J.col(2) << diff_Ksteer;
     J.col(3) << diff_Ktraction;
     J.col(4) << diff_baseline;
     J.col(5) << diff_steer_off;
 
-    std::cout << "\n" << "J: " << "\n" << J << "\n" << std::endl;
+    // std::cout << "\n" << "J: " << "\n" << J << "\n" << std::endl;
 }
 
 
@@ -112,12 +112,16 @@ int main(int argc, char** argv) {
     int dim_measurement = 2;
     int num_variables = 6;
     int num_measurements = ds.records.size();
+    int max_iter = 0;
+
+    double sq_norm = 0;
+    std::vector<double> error_log;
 
     Eigen::Vector2d error = Eigen::Vector2d::Zero();
     Eigen::MatrixXd Jacobian = Eigen::MatrixXd::Zero(dim_measurement, num_variables);
     
-    Eigen::MatrixXd H = Eigen::MatrixXd::Zero(num_variables, num_variables);
-    Eigen::MatrixXd b = Eigen::VectorXd::Zero(num_variables);
+    Eigen::MatrixXd H;
+    Eigen::VectorXd b;
 
     Eigen::Vector2d z;
     Eigen::VectorXd x(num_variables);
@@ -128,50 +132,60 @@ int main(int argc, char** argv) {
         ds.params.axis_length,
         ds.params.steer_offset;
 
-    Eigen::Matrix2d Omega = 1e-4 * Eigen::Matrix2d::Identity();
+    Eigen::Matrix2d Omega = 1 * Eigen::Matrix2d::Identity();
    
+    // ICP loop
+    for (int iter = 0; iter < max_iter; iter ++){
+        // clear H and b
+        H = Eigen::MatrixXd::Zero(num_variables, num_variables);
+        b = Eigen::VectorXd::Zero(num_variables);
 
-    // ICP loop            num_measurements
-    for(int index = 0; index < num_measurements; index ++){
-
-        // get a measurement
-        get_sensor_reading(ds, index, time, ticks_steer, ticks_track, z);
-        // std::cout << "index: " << index << std::endl;
-        // std::cout << "time: " << time << std::endl;
-        // std::cout << "ticks_steer: " << ticks_steer << std::endl;
-        // std::cout << "ticks_track: " << ticks_track << std::endl;
-        // std::cout << "z: " << z << std::endl;
-        // std::cout << "\n " << std::endl;
-        
         // update kinematic parameters in the kinematic model
         tr.updateParams(x.tail(x.size() - 2));
-        
-        // compute error and jacobian
-        compute_error_and_Jacobian(x, z, ticks_steer, ticks_track, error, Jacobian);
 
-        std::cout << "error" << error << std::endl;
-        std::cout << "Jacobian" << Jacobian << std::endl;
+        // one iter loop            num_measurements
+        for(int index = 0; index < num_measurements; index ++){
+
+            // get a measurement
+            get_sensor_reading(ds, index, time, ticks_steer, ticks_track, z);
+            
+            // compute error and jacobian
+            compute_error_and_Jacobian(x, z, ticks_steer, ticks_track, error, Jacobian);
+
+            sq_norm += error.norm();
+            // std::cout << "error" << error << std::endl;
+            // std::cout << "Jacobian" << Jacobian << std::endl;
 
 
-        // calibrate_parameters
-        H += Jacobian.transpose() * Omega * Jacobian;
-        b += Jacobian.transpose() * Omega * error;
-        
+            // calibrate_parameters
+            H += Jacobian.transpose() * Omega * Jacobian;
+            b += Jacobian.transpose() * Omega * error;
+            
+            // std::cout << "H: " << H << std::endl;
+            // std::cout << "b: " << b << std::endl;
+        }
+
         Eigen::VectorXd dx = H.ldlt().solve(-b);
-        x += dx;            // occhio a offset steer che è un angolo!!!
-
-        std::cout << "H: " << H << std::endl;
-        std::cout << "b: " << b << std::endl;
-        std::cout << "dx: " << dx << std::endl;
-
+        x += dx;            
+        
+        tr.resetState();
+        error_log.push_back(sq_norm / num_measurements);
+        sq_norm = 0; 
     }
+
 
     std::cout << "\n" << "ICP algorithm terminated " << std::endl;
     std::cout << "x_s: " << x(0)<< std::endl;
     std::cout << "y_s: " << x(1)<< std::endl;
-    std::cout << "Ksteer: " << x(2)<< std::endl;
+    std::cout << "K_steer: " << x(2)<< std::endl;
     std::cout << "K_traction: " << x(3)<< std::endl;
-    std::cout << "baseline_: " << x(4)<< std::endl;
+    std::cout << "baseline: " << x(4)<< std::endl;
     std::cout << "steer_offset: " << x(5)<< std::endl;
+
+    //save error for the plot 
+    save_error("error_log.csv",error_log);
+    //save params 
+    save_params("calibrated_params.csv", x);
+
     return 0;
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <Eigen/Dense>
 #include <cmath>
+#include "utils.h"
 
 class Tricycle{
 public:
@@ -12,7 +13,14 @@ public:
         steer_off_ = params(3);
     }
 
-    void update_tricycle_state(int32_t& ticks_steer, int32_t& ticks_track);
+    void resetState() {
+        x_ = 0.0; 
+        y_ = 0.0; 
+        theta_ = 0.0; 
+        phi_ = 0.0;                 
+    }
+
+    void update_tricycle_state(int32_t& ticks_steer, int32_t& delta_ticks_track);
 
      // Accessors
     Eigen::Vector2d pos() const { return Eigen::Vector2d(x_, y_); }

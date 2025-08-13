@@ -1,5 +1,11 @@
 #include "utils.h"
 
+double wrapTwoPi(double a) {
+    a = std::remainder(a, TWO_PI);  // (-π, π]
+    if (a < 0) a += TWO_PI;         // (0, 2π]
+    if (a == TWO_PI) a = 0.0;       // force half-open [0, 2π)
+    return a;
+}
 
 void print_infos(Dataset& ds){
     std::cout << "Parameters:\n"
@@ -57,4 +63,26 @@ void get_sensor_reading(
 
     z(0) = r.track_x;
     z(1) = r.track_y;
+}
+
+void save_error(const std::string& filename, const std::vector<double>& error_log) {
+    std::ofstream out(filename);
+    out << "iter, error\n";
+    out << std::fixed << std::setprecision(10);
+    for (size_t i = 0; i < error_log.size(); ++i) {
+        out << i << ", " << error_log[i] << "\n";
+    }
+}
+
+void save_params(const std::string& filename, const Eigen::VectorXd& x) {
+    std::ofstream out(filename);
+    out << "param, value\n";
+    out << std::fixed << std::setprecision(10);
+    out << "x_s: " << x(0) << "\n";
+    out << "y_s: " << x(1) << "\n";
+    out << "K_steer: " << x(2) << "\n";
+    out << "K_traction: " << x(3) << "\n";
+    out << "baseline: " << x(4) << "\n";
+    out << "steer_offset: " << x(5) << "\n";
+    
 }
