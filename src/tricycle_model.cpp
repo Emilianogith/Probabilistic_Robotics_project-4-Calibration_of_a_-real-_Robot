@@ -7,10 +7,10 @@ void Tricycle::update_tricycle_state(int32_t& ticks_steer, int32_t& delta_ticks_
     double delta_traction = Ktraction_ * static_cast<double>(delta_ticks_track);
     
     // integrate the model
-    phi_    = wrapTwoPi(Ksteer_ * static_cast<double>(ticks_steer) + steer_off_);
-    theta_  = wrapTwoPi(theta_ + delta_traction * std::sin(phi_)/baseline_);
     x_     += delta_traction * std::cos(theta_) * std::cos(phi_);
     y_     += delta_traction * std::sin(theta_) * std::cos(phi_);    
+    theta_  = wrapTwoPi(theta_ + delta_traction * std::sin(phi_)/baseline_);
+    phi_    = wrapTwoPi(Ksteer_ * static_cast<double>(ticks_steer) + steer_off_);
     
     // x_     += delta_traction * std::cos(theta_) * std::cos(phi_);
     // y_     += delta_traction * std::sin(theta_) * std::cos(phi_);

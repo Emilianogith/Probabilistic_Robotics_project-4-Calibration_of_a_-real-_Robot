@@ -21,72 +21,73 @@ void compute_error_and_Jacobian(
     Eigen::Vector2d pos_robot;
     double theta, phi;
 
-    // integrate the model
-    tr.update_tricycle_state(ticks_steer, ticks_track);
     pos_robot = tr.pos();
     theta     = tr.theta();
     phi       = tr.phi();
-    // std::cout << "\n" << "x: " << tr.x() << std::endl;
-    // std::cout << "y: " << tr.y() << std::endl;
+    std::cout << "\n" << "x: " << tr.x() << std::endl;
+    std::cout << "y: " << tr.y() << std::endl;
     // std::cout << "theta: " << tr.theta() << std::endl;
     // std::cout << "phi: " << tr.phi() << "\n" << std::endl;
-
+    
     Eigen::Matrix2d R;
     const double c_theta = std::cos(theta);
     const double s_theta = std::sin(theta);
     R << c_theta, -s_theta,
-         s_theta,  c_theta;
-
+    s_theta,  c_theta;
+    
     h = pos_robot + R * pos_sensor;          // position of the sensor expressed in world reference frame   
     error = h - z;
-
+    
     // compute the jacobian
     Eigen::Matrix2d R_prime;
     R_prime << -s_theta, -c_theta,
-                c_theta,  -s_theta;
-
+    c_theta,  -s_theta;
+    
     const double c_phi = std::cos(phi);
     const double s_phi = std::sin(phi);
-     
+    
     double Ksteer    = x(2);
     double Ktraction = x(3);
     double baseline  = x(4);
     double steer_off = x(5);
-
+    
     // compute differentials
     double diff_theta_phi  = Ktraction * ticks_track * c_phi / baseline;
     Eigen::Vector2d diff_p_phi = 
-        Ktraction * ticks_track * (
-            Eigen::Vector2d(-s_theta, c_theta) * c_phi * diff_theta_phi +
-            Eigen::Vector2d(c_theta, s_theta) * (-s_phi)
-        );
-
+    Ktraction * ticks_track * (
+        Eigen::Vector2d(-s_theta, c_theta) * c_phi * diff_theta_phi +
+        Eigen::Vector2d(c_theta, s_theta) * (-s_phi)
+    );
+    
     // diff theta
     double diff_theta_Ksteer    = diff_theta_phi * ticks_steer;
     double diff_theta_Ktraction = ticks_track * s_phi / baseline;
     double diff_theta_baseline  = - Ktraction * ticks_track * s_phi / std::pow(baseline,2);
     double diff_theta_steer_off = diff_theta_phi;
-
+    
     // diff p
     Eigen::Vector2d diff_p_Ksteer    = diff_p_phi * ticks_steer;
     Eigen::Vector2d diff_p_Ktraction = 
-        ticks_track * Eigen::Vector2d(c_theta, s_theta) * c_phi +
-        Ktraction * ticks_track * Eigen::Vector2d(-s_theta, c_theta) * c_phi * diff_theta_Ktraction;
+    ticks_track * Eigen::Vector2d(c_theta, s_theta) * c_phi +
+    Ktraction * ticks_track * Eigen::Vector2d(-s_theta, c_theta) * c_phi * diff_theta_Ktraction;
     Eigen::Vector2d diff_p_baseline  = Ktraction * ticks_track * Eigen::Vector2d(-s_theta, c_theta) * c_phi * diff_theta_baseline;
     Eigen::Vector2d diff_p_steer_off = diff_p_phi;
-
+    
     Eigen::Vector2d diff_Ksteer    = diff_p_Ksteer    + R_prime * pos_sensor * diff_theta_Ksteer;
     Eigen::Vector2d diff_Ktraction = diff_p_Ktraction + R_prime * pos_sensor * diff_theta_Ktraction;
     Eigen::Vector2d diff_baseline  = diff_p_baseline  + R_prime * pos_sensor * diff_theta_baseline;
     Eigen::Vector2d diff_steer_off = diff_p_steer_off + R_prime * pos_sensor * diff_theta_steer_off;
-
+    
     J.block(0,0,2,2) = R; 
     J.col(2) << diff_Ksteer;
     J.col(3) << diff_Ktraction;
     J.col(4) << diff_baseline;
     J.col(5) << diff_steer_off;
-
+    
     // std::cout << "\n" << "J: " << "\n" << J << "\n" << std::endl;
+
+    // integrate the model at the end
+    tr.update_tricycle_state(ticks_steer, ticks_track);
 }
 
 
@@ -112,9 +113,9 @@ int main(int argc, char** argv) {
     int dim_measurement = 2;
     int num_variables = 6;
     int num_measurements = ds.records.size();
-    int max_iter = 0;
+    int max_iter = 20;
 
-    double sq_norm = 0;
+    double error_norm = 0;
     std::vector<double> error_log;
 
     Eigen::Vector2d error = Eigen::Vector2d::Zero();
@@ -152,7 +153,7 @@ int main(int argc, char** argv) {
             // compute error and jacobian
             compute_error_and_Jacobian(x, z, ticks_steer, ticks_track, error, Jacobian);
 
-            sq_norm += error.norm();
+            error_norm += error.norm();
             // std::cout << "error" << error << std::endl;
             // std::cout << "Jacobian" << Jacobian << std::endl;
 
@@ -169,8 +170,8 @@ int main(int argc, char** argv) {
         x += dx;            
         
         tr.resetState();
-        error_log.push_back(sq_norm / num_measurements);
-        sq_norm = 0; 
+        error_log.push_back(error_norm / num_measurements);
+        error_norm = 0; 
     }
 
 

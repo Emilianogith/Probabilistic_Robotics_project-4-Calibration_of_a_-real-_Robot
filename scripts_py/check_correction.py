@@ -1,7 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-params = {}
+import sys, os
+sys.path.append(os.path.abspath("../04-Calibration"))
+from view_traj import get_pos_sensor_traj
 
+params = {}
 with open("../build/calibrated_params.csv") as f:
     for line in f:
         if ":" in line:
@@ -44,13 +47,13 @@ for ticks_steer, tick_track_curr in ticks_list:
     else:
         delta_ticks = delta
 
-    delta_traction = K_traction * float(delta_ticks)
+    delta_traction = K_traction * delta_ticks
 
     # integrate the model
-    phi    = K_steer * float(ticks_steer) + steer_offset
-    theta  = theta + delta_traction * np.sin(phi)/baseline
     x     += delta_traction * np.cos(theta) * np.cos(phi)
     y     += delta_traction * np.sin(theta) * np.cos(phi) 
+    theta  = theta + delta_traction * np.sin(phi)/baseline
+    phi    = K_steer * ticks_steer + steer_offset
 
     pos_robot = np.array([x, y])
 
@@ -63,11 +66,14 @@ for ticks_steer, tick_track_curr in ticks_list:
     tick_track_prev = tick_track_curr
 
 
+path = "../04-Calibration/dataset.txt"
+x_s , y_s = get_pos_sensor_traj(path)
+
 H = np.array(h)   
 plt.figure()
-plt.scatter(H[:, 0], H[:, 1], s=0.5)
-plt.axis("equal")
-plt.xlabel("x [m]")
-plt.ylabel("y [m]")
-plt.title("Predicted sensor trajectory")
+plt.scatter(H[:, 0], H[:, 1], s=0.5, label = "Predicted sensor trajectory")
+plt.xlabel("x_s [m]")
+plt.ylabel("y_s [m]")
+plt.scatter(x_s, y_s, s=0.5, label = "tracker sensor trajectory")
+plt.legend()
 plt.show()
