@@ -23,18 +23,20 @@ public:
     void update_tricycle_state(int32_t& ticks_steer, int32_t& delta_ticks_track);
 
      // Accessors
-    Eigen::Vector2d pos() const { return Eigen::Vector2d(x_, y_); }
-    double x() const { return x_; }
-    double y() const { return y_; }
-    double theta() const { return theta_; }
-    double phi() const { return phi_; }  
+    Eigen::Vector2d pos() const { return Eigen::Vector2d(x_, y_); };
+    double x() const { return x_; };
+    double y() const { return y_; };
+    double theta() const { return theta_; };
+    double phi() const { return phi_; };
 
+    double   tick_steer_max_ = 8192;
+    double   tick_track_max_ = 5000;
 private:
         // kinematic parameters
         double   Ksteer_;      
         double   Ktraction_;    
         double   baseline_;            
-        double   steer_off_;         
+        double   steer_off_;   
 
     // initial state
     double x_ = 0.0, y_ = 0.0, theta_ = 0.0; // base pose in world

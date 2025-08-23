@@ -4,13 +4,18 @@
 void Tricycle::update_tricycle_state(int32_t& ticks_steer, int32_t& delta_ticks_track)
 {
     // convert ticks and avoid overflow
-    double delta_traction = Ktraction_ * static_cast<double>(delta_ticks_track);
+    double delta_traction = Ktraction_ * static_cast<double>(delta_ticks_track) / tick_track_max_;
     
     // integrate the model
+    phi_    = Ksteer_ * wrapToPi(static_cast<double>(ticks_steer) * (2.0 * M_PI / tick_steer_max_)) + steer_off_;
     x_     += delta_traction * std::cos(theta_) * std::cos(phi_);
     y_     += delta_traction * std::sin(theta_) * std::cos(phi_);    
-    theta_  = wrapTwoPi(theta_ + delta_traction * std::sin(phi_)/baseline_);
-    phi_    = wrapTwoPi(Ksteer_ * static_cast<double>(ticks_steer) + steer_off_);
+    theta_  = theta_ + delta_traction * std::sin(phi_)/baseline_;
+    
+    
+    // std::cout << "x_" << x_ << std::endl;
+    // std::cout << "y_" << y_ << std::endl;
+
     
     // x_     += delta_traction * std::cos(theta_) * std::cos(phi_);
     // y_     += delta_traction * std::sin(theta_) * std::cos(phi_);

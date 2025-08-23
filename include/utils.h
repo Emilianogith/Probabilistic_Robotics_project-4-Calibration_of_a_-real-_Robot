@@ -7,6 +7,8 @@
 
 constexpr double TWO_PI = 2.0 * M_PI;
 
+double wrapToPi(double a);
+
 double wrapTwoPi(double a);
 
 void print_infos(Dataset& ds);

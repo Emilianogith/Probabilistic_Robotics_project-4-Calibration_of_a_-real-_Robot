@@ -1,5 +1,10 @@
 #include "utils.h"
 
+double wrapToPi(double a) {
+    a = std::remainder(a, TWO_PI);  // (-π, π]
+    return a;
+}
+
 double wrapTwoPi(double a) {
     a = std::remainder(a, TWO_PI);  // (-π, π]
     if (a < 0) a += TWO_PI;         // (0, 2π]
@@ -57,7 +62,7 @@ void get_sensor_reading(
     const uint32_t max_traction = static_cast<uint32_t>(ds.joints.values[1]);
     
     time = r.time;
-    ticks_steer = r.ticks_steer % max_steer;    
+    ticks_steer = r.ticks_steer;    
     ticks_track = static_cast<int32_t>(r.ticks_trac - prev_r.ticks_trac);
 
 
