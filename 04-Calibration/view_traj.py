@@ -109,10 +109,20 @@ if __name__ == "__main__":
 
 	x_r,y_r = get_pos_robot_traj(path)
 	x_odom,y_odom = odometry(path)
-	fig, ax = plt.subplots()
-	ax.scatter(x_np, y_np, s=0.5, label="Sensor Trajectory")
-	ax.scatter(x_r, y_r, s=0.5, label="Robot Trajectory")
-	ax.scatter(x_odom, y_odom, s=0.5, label="Robot Odometry")
-	ax.axis("equal")
-	ax.legend()
+
+	fig1, ax1 = plt.subplots()
+	ax1.scatter(x_np, y_np, s=0.5, label="Sensor Trajectory")
+	ax1.axis("equal")
+	ax1.legend()
+
+	fig2, ax2 = plt.subplots()
+	ax2.scatter(x_r, y_r, s=0.5, label="Robot Trajectory", color="orange")
+	ax2.axis("equal")
+	ax2.legend()
+
+	fig3, ax3 = plt.subplots()
+	ax3.scatter(x_odom, y_odom, s=0.5, label="Robot Odometry", color="green")
+	ax3.axis("equal")
+	ax3.legend()
+
 	plt.show()
