@@ -109,20 +109,25 @@ if __name__ == "__main__":
 
 	x_r,y_r = get_pos_robot_traj(path)
 	x_odom,y_odom = odometry(path)
-
-	fig1, ax1 = plt.subplots()
-	ax1.scatter(x_np, y_np, s=0.5, label="Sensor Trajectory")
+	
+	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+	ax1.set_title("Sensor trajectory in external tracking frame")
+	ax1.scatter(x_np, y_np, s=0.5, label="Sensor trajectory")
 	ax1.axis("equal")
+	ax1.set_xlabel("x_s [m]")
+	ax1.set_ylabel("y_s [m]")
 	ax1.legend()
 
-	fig2, ax2 = plt.subplots()
-	ax2.scatter(x_r, y_r, s=0.5, label="Robot Trajectory", color="orange")
-	ax2.axis("equal")
-	ax2.legend()
+	# fig2, ax2 = plt.subplots()
+	# ax2.scatter(x_r, y_r, s=0.5, label="Robot Trajectory", color="orange")
+	# ax2.axis("equal")
+	# ax2.legend()
 
-	fig3, ax3 = plt.subplots()
-	ax3.scatter(x_odom, y_odom, s=0.5, label="Robot Odometry", color="green")
-	ax3.axis("equal")
-	ax3.legend()
+	ax2.set_title("Robot odometry in robot local frame")
+	ax2.scatter(x_odom, y_odom, s=0.5, label="Robot odometry (not calibrated)", color="green")
+	ax2.axis("equal")
+	ax2.set_xlabel("x [m]")
+	ax2.set_ylabel("y [m]")
+	ax2.legend()
 
 	plt.show()
