@@ -13,9 +13,26 @@ The dataset collected during the robot’s motion contains the following informa
 In the following are reported the reconstructed trajectories of the sensor and the trajectory of the kinematic center of the robot obtained trhough **not-calibrated** odometry:
 <img src="img/view_traj.png" alt="Sample dataset plot" width="1200"/>
 
-## Kinematic model
+The parameters to be calibrated are:
+- $x_s$: x-coordinate of the sensor position in the robot reference frame
+- $y_s$: y-coordinate of the sensor position in the robot reference frame
+- $\theta_s$: orientation (angle) of the sensor in the robot reference frame
+- $K_{steer}$: conversion factor indicating how many radians correspond to one tick of the steering encoder
+- $K_{traction}$: conversion factor indicating how many meters correspond to one tick of the traction encoder
+- $\gamma_{off}$: steering angle corresponding to the mechanical zero of the wheel
+- $b$: distance between the center of the rear axle and the front wheel (baseline)
 
-the kinematic model adopted is:
+
+## Kinematic model
+The configuration space of the robot is $SE(2) \times SO(2)$.  
+With reference to the conventions defined in the figure below, which illustrate the displacements of the FWD tricycle during a step:
+
+<div align="center">
+  <img src="img/tricycle.png" width="300"/>
+</div>
+
+
+where the discrete inputs are:
 
 $$
 \begin{equation}
@@ -27,6 +44,20 @@ $$
 \end{cases}
 \end{equation}
 $$
+
+where the discrete inputs are:
+
+$$
+u_{\phi,k} = \frac{K_{steer}  t^s_{k} \frac{2 \pi}{T^s_{max}}}{T_s}
+$$
+$$
+u_{\delta,k} = \frac{K_{traction} \frac{\delta t^t_{k}}{T^t_{max}} + \gamma_{off}}{T_s}
+$$
+
+Here:
+- $T^t_{max}$ and $T^s_{max}$ are the maximum values for the traction and steering encoder ticks.  
+- $t^s_{k}$ is the absolute encoder reading from the steering axis.  
+- $\delta t^t_{k}$ is the difference between two consecutive readings of the incremental encoder mounted on the steering wheel, processed to avoid overflow errors.
 
 ## Algorithm
 gg
