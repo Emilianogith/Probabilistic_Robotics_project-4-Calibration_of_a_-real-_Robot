@@ -60,7 +60,27 @@ Here:
 - $\delta t^t_{k}$ is the difference between two consecutive readings of the incremental encoder mounted on the steering wheel, processed to avoid overflow errors.
 
 ## Algorithm
+
+### State space
+x, manifold
+- Qualify the Domain
+- Define an Euclidean parameterization for the perturbation
+- Define boxplus operator
+
+### Measurement space
+z e h
+- Qualify the Domain
+- Define an Euclidean parameterization for the perturbation
+- Define boxminus operator
+
+### Prediction function
 gg
+
+### Error function
+gg
+
+### Least Squares on manidìfold
+numerical jacobian inside the computations
 
 ## Results
 The evolution of the Omega norm of the error and the number of outliers during the execution of the algorithm is shown below:
