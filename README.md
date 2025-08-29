@@ -14,7 +14,19 @@ In the following are reported the reconstructed trajectories of the sensor and t
 <img src="img/view_traj.png" alt="Sample dataset plot" width="1200"/>
 
 ## Kinematic model
-gg
+
+the kinematic model adopted is:
+
+$$
+\begin{equation}
+\begin{cases}
+\phi_k = u_{\phi,k} T_s \\
+\Delta \theta_k = u_{\delta,k} T_s \dfrac{\sin(\phi_k)}{b} \\
+\Delta x_k = u_{\delta,k} T_s \cos(\phi_k)\cos(\Delta \theta_k) \\
+\Delta y_k = u_{\delta,k} T_s \cos(\phi_k)\sin(\Delta \theta_k)
+\end{cases}
+\end{equation}
+$$
 
 ## Algorithm
 gg
