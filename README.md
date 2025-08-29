@@ -37,7 +37,7 @@ where the discrete inputs are:
 $$
 \begin{equation}
 \begin{cases}
-\phi_k = u_{\phi,k} T_s \\
+\phi_k = \alpha_{k} \\
 \Delta \theta_k = u_{\delta,k} T_s \dfrac{\sin(\phi_k)}{b} \\
 \Delta x_k = u_{\delta,k} T_s \cos(\phi_k)\cos(\Delta \theta_k) \\
 \Delta y_k = u_{\delta,k} T_s \cos(\phi_k)\sin(\Delta \theta_k)
@@ -45,13 +45,13 @@ $$
 \end{equation}
 $$
 
-where the discrete inputs are:
+where the steer angle and the discrete input are:
 
 $$
-u_{\phi,k} = \frac{K_{steer}  t^s_{k} \frac{2 \pi}{T^s_{max}}}{T_s}
+\alpha_{k} = K_{steer} t^s_{k} \frac{2 \pi}{T^s_{max}} + \gamma_{off}
 $$
 $$
-u_{\delta,k} = \frac{K_{traction} \frac{\delta t^t_{k}}{T^t_{max}} + \gamma_{off}}{T_s}
+u_{\delta,k} = \frac{K_{traction} \frac{\delta t^t_{k}}{T^t_{max}}}{T_s}
 $$
 
 Here:
