@@ -61,14 +61,14 @@ However, due to numerical approximation and measurement noise, the predicted tra
       │   ├── parse_dataset.cpp
       │   ├── tricycle_model.cpp
       │   └── utils.cpp
-      ├── scripts_py/            # Header files
+      ├── scripts_py/         # Python scripts
       │   ├── requirements.txt
       │   ├── check_correction.py
       │   └── plot_error.py
       ├── CMakeLists.txt      
       └── README.md        
    ```
-3. Make sure the `dataset.txt` has the same form of the one provided:
+3. Make sure that any `dataset.txt` to be used has the same form of the one provided:
    ```bash
    #kinematic_model: ...
    #parameters: ...
