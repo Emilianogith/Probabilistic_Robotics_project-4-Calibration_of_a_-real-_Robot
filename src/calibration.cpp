@@ -60,8 +60,8 @@ int main(int argc, char** argv) {
     int max_iter = 13;
     int num_outliers = 0;
     double kernel_threshold = 2e-4;
-    double chi = 0;
-    double total_iter_chi = 0;
+    double chi_sq = 0;
+    double total_iter_chi_sq = 0;
     std::vector<double> error_log;
     std::vector<int> outliers_log;
 
@@ -86,13 +86,13 @@ int main(int argc, char** argv) {
 
     Eigen::MatrixXd Omega = 1 * Eigen::MatrixXd::Identity(dim_measurement, dim_measurement);
    
-    // ICP loop
+    // LS loop
     for (int iter = 0; iter < max_iter; iter ++){
         // clear H and b
         H = Eigen::MatrixXd::Zero(num_variables, num_variables);
         b = Eigen::VectorXd::Zero(num_variables);
-        chi = 0; 
-        total_iter_chi = 0;
+        chi_sq = 0; 
+        total_iter_chi_sq = 0;
         num_outliers = 0;
 
         // one iter loop            
@@ -105,15 +105,15 @@ int main(int argc, char** argv) {
             compute_error_and_Jacobian(x, delta_z, ticks_steer, delta_ticks_track, error, Jacobian);
 
             // lessen the contribution of measurements having higher error
-            chi = error.transpose() * Omega * error; 
-            if (chi > kernel_threshold && index > 0) {
-                error *= std::sqrt(kernel_threshold/chi);
-                chi = kernel_threshold;
+            chi_sq = error.transpose() * Omega * error; 
+            if (chi_sq > kernel_threshold && index > 0) {
+                error *= std::sqrt(kernel_threshold/chi_sq);
+                chi_sq = kernel_threshold;
                 num_outliers += 1;
                 continue;
             }
 
-            total_iter_chi += chi;
+            total_iter_chi_sq += chi_sq;
 
             // accumulate H and b 
             H += Jacobian.transpose() * Omega * Jacobian;
@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
 
         x = box_plus(x, dx);
         
-        error_log.push_back(total_iter_chi);
+        error_log.push_back(total_iter_chi_sq);
         outliers_log.push_back(num_outliers);
     }
 
