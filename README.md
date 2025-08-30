@@ -38,9 +38,9 @@ $$
 \begin{equation}
 \begin{cases}
 \phi_k = \alpha_{k} \\
-\Delta \theta_k = u_{\delta,k} T_s \dfrac{\sin(\phi_k)}{b} \\
-\Delta x_k = u_{\delta,k} T_s \cos(\phi_k)\cos(\Delta \theta_k) \\
-\Delta y_k = u_{\delta,k} T_s \cos(\phi_k)\sin(\Delta \theta_k)
+\Delta \theta_k = u_{\delta,k} T_s \cdot \dfrac{\sin(\phi_k)}{b} \\
+\Delta x_k = u_{\delta,k} T_s \cdot \cos(\phi_k)\cos(\Delta \theta_k) \\
+\Delta y_k = u_{\delta,k} T_s \cdot \cos(\phi_k)\sin(\Delta \theta_k)
 \end{cases}
 \end{equation}
 $$
@@ -48,10 +48,10 @@ $$
 where the steer angle and the discrete input are:
 
 $$
-\alpha_{k} = K_{steer} t^s_{k} \frac{2 \pi}{T^s_{max}} + \gamma_{off}
+\alpha_{k} = K_{steer} \cdot t^s_{k}  \cdot \frac{2 \pi}{T^s_{max}} + \gamma_{off}
 $$
 $$
-u_{\delta,k} = \frac{K_{traction} \frac{\delta t^t_{k}}{T^t_{max}}}{T_s}
+u_{\delta,k} = \frac{K_{traction}  \cdot \frac{\delta t^t_{k}}{T^t_{max}}}{T_s}
 $$
 
 Here:
@@ -62,24 +62,98 @@ Here:
 ## Algorithm
 
 ### State space
-x, manifold
-- Qualify the Domain
-- Define an Euclidean parameterization for the perturbation
-- Define boxplus operator
+The state of the Least Square problem is:
+
+$$
+X =
+\begin{bmatrix}
+{}^{r}T_{s} \\
+K_{steer} \\
+K_{traction} \\
+b \\
+\gamma_{off}
+\end{bmatrix}
+\in \mathbb{R}^4 \times SE(2)$$
+
+The Euclidean parametrization for the chart is:
+
+$$
+\Delta_{X}  =
+\begin{bmatrix}
+\Delta {}^{r}x_{s} \\
+\Delta {}^{r}y_{s} \\
+\Delta {}^{r}\theta_{s} \\
+\Delta K_{steer} \\
+\Delta K_{traction} \\
+\Delta b \\
+\Delta \gamma_{off}
+\end{bmatrix}
+\in \mathbb{R}^7 $$
+
+In order to handle operations envolving a point in the manifold and an the Euclidean parametrization for the chart around that point we need to define the boxplus operator in the following way:
+
+$$
+X\boxplus \Delta_{X} = \begin{bmatrix}
+v2t
+\begin{pmatrix}
+{}^{r} \Delta x_{s} \\
+{}^{r} \Delta y_{s} \\
+{}^{r} \Delta \theta_{s} 
+\end{pmatrix} \cdot {}^{r}T_{s} \\
+K_{steer} + \Delta K_{steer} \\
+K_{traction} + \Delta K_{traction} \\
+b + \Delta b \\
+\gamma_{off} + \Delta \gamma_{off}
+\end{bmatrix}
+$$
 
 ### Measurement space
-z e h
-- Qualify the Domain
-- Define an Euclidean parameterization for the perturbation
-- Define boxminus operator
+The measurement $Z^{(i)}$ is defined as the relative pose displacement of the sensor when the robot moves from pose $i-1$ to pose $i$ expressed in the reference frame of sensor $i-1$. Formally:
+
+$$
+Z = \Delta z \in SE(2)
+$$
+
+where $\Delta z$ is given by:
+
+$$
+^{i-1}\Delta z_{i} = {}^{ex}T_{s, i-1}^{-1} \cdot {}^{ex}T_{s, i}
+$$
+
+Here, ${}^{ex}T_{s, j}$ denotes the homogeneous transformation matrix of the sensor pose at time step $j$, expressed with respect to the external tracking system.
+
+The Euclidean parametrization for the measurment is:
+
+$$
+\zeta = \begin{bmatrix}
+{}^{s,i-1} \Delta x_{s,i} \\
+{}^{s,i-1} \Delta y_{s,i} \\
+{}^{s,i-1} \Delta \theta_{s,i} 
+\end{bmatrix} \in \mathbb{R}^3
+$$
+
+To handle operations involving these measurements, it is necessary to introduce the box-minus operator:
+
+$$
+h(X, \Delta_r) \boxminus Z = Z^{-1} \cdot h(X, \Delta r)
+$$
 
 ### Prediction function
-gg
+The prediction function models the relative pose displacement of the sensor when the robot moves from step $i-1$ to step $i$ by an amount $\Delta r$ expressed in the reference frame of sensor $i$:
+
+$$
+h(X, \Delta r) = {}^{r}T_{s}^{-1} \cdot \Delta r \cdot {}^{r}T_{s}
+$$
+
 
 ### Error function
-gg
+The error function quantifies the difference between the predicted sensor displacement and the measured displacement:
 
-### Least Squares on manidìfold
+$$
+e(X) = h(X, \Delta r) \boxminus Z 
+$$
+
+### Least Squares on manifold
 numerical jacobian inside the computations
 
 ## Results
