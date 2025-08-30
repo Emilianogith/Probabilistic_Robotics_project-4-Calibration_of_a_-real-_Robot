@@ -154,7 +154,28 @@ e(X) = h(X, \Delta r) \boxminus Z
 $$
 
 ### Least Squares on manifold
-numerical jacobian inside the computations
+The algorithm adopted can be summarized as follows:
+
+$$
+\begin{aligned}
+&\textbf{for } i = 1, \ldots, \texttt{max iterations}:\\
+&\quad H \leftarrow 0,\quad b \leftarrow 0,\quad \chi \leftarrow 0\\
+&\quad \textbf{for each } j = 1, \ldots, N:\\
+&\quad\quad Z, \delta t_j^{t}, t_j^{s} \leftarrow \texttt{get sensor reading}(j)\\
+&\quad\quad \Delta_r \leftarrow \texttt{model prediction}(X, \delta t_j^{t}, t_j^{s})\\
+&\quad\quad e_j \leftarrow h(X, \Delta r)\boxminus Z\\
+&\quad\quad J_j \leftarrow \texttt{compute jacobian}(X, \Delta r, Z)\\
+&\quad\quad H \leftarrow H + J_j^{\top}\Omega J_j\\
+&\quad\quad b \leftarrow b + J_j^{\top}\Omega e_j\\
+&\quad\quad \chi \leftarrow \chi + e_j^{\top}\Omega e_j\\
+&\quad \textbf{end for}\\
+&\quad \Delta X \leftarrow \texttt{solve}(H \cdot \Delta X = -b)\\
+&\quad X \leftarrow X \boxplus \Delta_X\\
+&\textbf{end for}
+\end{aligned}
+$$
+
+Here, $e_j$ denotes the error corresponding to the $j$-th sample, while $J_i$ represents the Jacobian matrix, computed numerically.
 
 ## Results
 The evolution of the Omega norm of the error and the number of outliers during the execution of the algorithm is shown below:
@@ -167,7 +188,7 @@ This behavior demonstrates that the **Least Squares on Manifold** algorithm reve
 <img src="img/calibration.png" alt="Sample dataset plot" width="1200"/>
 After calibration, the predicted sensor trajectory aligns closely with the measured one, clear evidence of successful calibration.  
 
-However, due to numerical approximation and measurement noise, the predicted trajectory is not perfectly superimposed on the ground truth, but the residual shift remains minimal.
+However, due to numerical approximation and measurement noise, the predicted trajectory is not perfectly superimposed on the ground truth, but the residual shift remains minimal. The experimental results have been obtained using max iterations = 10.
 
 ## How to run the code
 1. Clone the repo
