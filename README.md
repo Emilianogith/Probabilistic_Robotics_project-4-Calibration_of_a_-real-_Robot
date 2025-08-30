@@ -188,7 +188,7 @@ This behavior demonstrates that the **Least Squares on Manifold** algorithm reve
 <img src="img/calibration.png" alt="Sample dataset plot" width="1200"/>
 After calibration, the predicted sensor trajectory aligns closely with the measured one, clear evidence of successful calibration.  
 
-However, due to numerical approximation and measurement noise, the predicted trajectory is not perfectly superimposed on the ground truth, but the residual shift remains minimal. The experimental results have been obtained using max iterations = 10.
+However, due to numerical approximation and measurement noise, the predicted trajectory is not perfectly superimposed on the ground truth, but the residual shift remains minimal. The experimental results have been obtained using max iterations = 13.
 
 ## How to run the code
 1. Clone the repo
