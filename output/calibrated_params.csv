@@ -1,0 +1,8 @@
+param, value
+x_s: 1.5801617096
+y_s: -0.0027750135
+theta_s: 0.0125420836
+K_steer: 0.5482926406
+K_traction: 0.0094605542
+baseline: 1.3296327887
+steer_offset: -0.0490104789
