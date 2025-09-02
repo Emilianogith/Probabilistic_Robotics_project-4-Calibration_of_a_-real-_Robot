@@ -181,7 +181,6 @@ Here, $e_j$ denotes the error corresponding to the $j$-th sample, while $J_i$ re
 The evolution of the Omega norm of the error and the number of outliers during the execution of the algorithm is shown below:
 <img src="img/error.png" alt="Sample dataset plot" width="900"/>
 
-At the beginning, the error norm remains relatively contained, with some initial increases caused by measurement noise and by the ill-conditioning of the Jacobian (due to the numerical approximation used).
 The error progressively converges to a smaller value.  
 In parallel, the number of outliers (measurements inconsistent with the model and producing a significantly high error) decreases as iterations proceed.  
 This behavior demonstrates that the **Least Squares on Manifold** algorithm revealed effective for this calibration task.
