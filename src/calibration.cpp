@@ -57,7 +57,8 @@ int main(int argc, char** argv) {
     int dim_measurement = 3;
     int num_variables = 7;
     int num_measurements = ds.records.size();
-    int max_iter = 13;
+    int max_iter = 19;
+    int skip_N = 3;
     int num_outliers = 0;
     double kernel_threshold = 2e-4;
     double chi_sq = 0;
@@ -85,7 +86,7 @@ int main(int argc, char** argv) {
          ds.params.steer_offset;
 
     Eigen::MatrixXd Omega = 1 * Eigen::MatrixXd::Identity(dim_measurement, dim_measurement);
-   
+
     // LS loop
     for (int iter = 0; iter < max_iter; iter ++){
         // clear H and b
@@ -96,7 +97,7 @@ int main(int argc, char** argv) {
         num_outliers = 0;
 
         // one iter loop            
-        for(int index = 1; index < num_measurements; index++){
+        for(int index = 1; index < num_measurements; index+=skip_N){
 
             // get a measurement (returns delta_z displacement from prev to curr)
             get_sensor_reading(ds, index, time, ticks_steer, delta_ticks_track, delta_z);
@@ -110,10 +111,9 @@ int main(int argc, char** argv) {
                 error *= std::sqrt(kernel_threshold/chi_sq);
                 chi_sq = kernel_threshold;
                 num_outliers += 1;
+                total_iter_chi_sq += chi_sq;
                 continue;
             }
-
-            total_iter_chi_sq += chi_sq;
 
             // accumulate H and b 
             H += Jacobian.transpose() * Omega * Jacobian;
@@ -126,7 +126,6 @@ int main(int argc, char** argv) {
         // calibrate_parameters
         H += 2.0 * Eigen::MatrixXd::Identity(num_variables, num_variables);     // required for numerical stability
         Eigen::VectorXd dx = H.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(-b);
-
         x = box_plus(x, dx);
         
         error_log.push_back(total_iter_chi_sq);

@@ -181,14 +181,15 @@ Here, $e_j$ denotes the error corresponding to the $j$-th sample, while $J_i$ re
 The evolution of the Omega norm of the error and the number of outliers during the execution of the algorithm is shown below:
 <img src="img/error.png" alt="Sample dataset plot" width="900"/>
 
-At the beginning, the error norm remains relatively contained, with some initial increases caused by measurement noise and by the ill-conditioning of the Jacobian (due to the numerical approximation used). After these first iterations, the error progressively converges to a smaller value.  
+At the beginning, the error norm remains relatively contained, with some initial increases caused by measurement noise and by the ill-conditioning of the Jacobian (due to the numerical approximation used).
+The error progressively converges to a smaller value.  
 In parallel, the number of outliers (measurements inconsistent with the model and producing a significantly high error) decreases as iterations proceed.  
 This behavior demonstrates that the **Least Squares on Manifold** algorithm revealed effective for this calibration task.
 
 <img src="img/calibration.png" alt="Sample dataset plot" width="1200"/>
 After calibration, the predicted sensor trajectory aligns closely with the measured one, clear evidence of successful calibration.  
 
-However, due to numerical approximation and measurement noise, the predicted trajectory is not perfectly superimposed on the ground truth, but the residual shift remains minimal. The experimental results have been obtained using max iterations = 13.
+However, due to numerical approximation and measurement noise, the predicted trajectory is not perfectly superimposed on the ground truth, but the residual shift remains minimal. The experimental results have been obtained using max iterations = 19.
 
 ## How to run the code
 1. Clone the repo
